@@ -89,7 +89,7 @@ def ambientePython():
             print("Configurando GitHub...")
             os.system(f"cd {path_relativo} && gh repo create")
             print("Push para GitHub...")
-            os.system(f"cd {path_relativo} && git push --set-upstream github master")
+            # os.system(f"cd {path_relativo} && git push --set-upstream github master")
 
         else:
             print("Projeto já existe!")
