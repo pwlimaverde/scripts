@@ -9,7 +9,8 @@ PROJECT_NAME = sys.argv[2]
 PATH_PROJETO = Path()
 
 print(
-    f"Criando ambiente para desenvolvimento do projeto: {PROJECT_NAME} em {LANGUAGE}!"
+    f"Criando ambiente para desenvolvimento do projeto: {
+        PROJECT_NAME} em {LANGUAGE}!"
 )
 
 
@@ -26,7 +27,8 @@ def modificarPyprojectToml(project_path):
         if "requires-python" in content["project"]:
             content["project"]["requires-python"] = "3.13.1"
         else:
-            raise KeyError("O campo 'requires-python' não foi encontrado no arquivo.")
+            raise KeyError(
+                "O campo 'requires-python' não foi encontrado no arquivo.")
 
         # Salva as alterações no arquivo
         with open(path_toml, "w", encoding="utf-8") as file:
@@ -38,13 +40,52 @@ def modificarPyprojectToml(project_path):
         print(f"Erro ao modificar pyproject.toml: {e}")
 
 
+# def configSetup(project_path, project_name):
+#     """Configura o setup para instalação dos modulos internos."""
+#     try:
+#         project = (
+#             project_path / "setup.py"
+#         )  # Corrigido: caminho relativo ao projeto
+#         with open(project, "w", encoding="utf-8") as file:
+#             file.write(
+#                 f"""from setuptools import setup, find_packages
+
+# setup(
+#     name='selfe_package_{project_name.replace('-', '_')}',
+#     packages=find_packages(),
+# )""")
+
+#         print("Setup.py criado e configuradocom sucesso!")
+
+#     except (FileNotFoundError, KeyError) as e:
+#         print(f"Erro ao criar setup.py: {e}")
+
+def configPytestCov(project_path, project_name):
+    """Configura o pytest para executar os comandos cov automaticamente."""
+    try:
+        project = (
+            project_path / "pytest.ini"
+        )
+        with open(project, "w", encoding="utf-8") as file:
+            file.write(
+                f"[pytest]\naddopts = --cov={project_name.replace(
+                    '-', '_')} --cov-report=html:tests/htmlcov --cov-report term-missing"
+            )
+
+        print("pytest.ini criado e configurado com sucesso!")
+
+    except (FileNotFoundError, KeyError) as e:
+        print(f"Erro ao criar pytest.ini: {e}")
+
+
 def ambientePython():
     try:
         path_absoluto = PATH_PROJETO.absolute() / PROJECT_NAME
         path_relativo = PATH_PROJETO / PROJECT_NAME
 
         if not path_absoluto.exists():
-            print(f"Iniciando script de criação do ambiente python em {path_relativo}")
+            print(f"Iniciando script de criação do ambiente python \
+                em {path_relativo}")
             print("Criando projeto pelo poetry...")
             os.system(f"poetry new {path_relativo}")
 
@@ -52,10 +93,14 @@ def ambientePython():
             os.system(f"python -m venv {path_absoluto}" + R"\.venv")
             os.system(f"call {path_absoluto}" + R"\.venv\Scripts\activate")
 
+            os.system(f"cd {path_relativo}\\{PROJECT_NAME.replace(
+                '-', '_')} && mkdir src && echo. > src\\__init__.py")
             print("Configurando poetry...")
             os.system(f"cd {path_relativo} && poetry install")
 
             modificarPyprojectToml(path_relativo)
+
+            configPytestCov(path_relativo, PROJECT_NAME)
 
             print("Instalando dev dependencies...")
             os.system(
@@ -77,6 +122,14 @@ def ambientePython():
             print("doc dependencies instaladas...")
             print("Instalando dependencies...")
 
+            # os.system(
+            #     f"cd {path_relativo} \
+            #         && poetry add setuptools \
+            #         && poetry add . --editable"
+            # )
+
+            print("Dependencies instaladas...")
+
             print("Ambiente criado com sucesso!")
 
             print("Configurando git...")
@@ -89,7 +142,9 @@ def ambientePython():
             print("Configurando GitHub...")
             os.system(f"cd {path_relativo} && gh repo create")
             print("Push para GitHub...")
-            # os.system(f"cd {path_relativo} && git push --set-upstream github master")
+
+            # os.system(
+            #     f"cd {path_relativo} && git push --set-upstream github master")
 
         else:
             print("Projeto já existe!")
